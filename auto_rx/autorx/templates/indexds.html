@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Datos de Sonda RS41</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Estación Meteorológica Escuela Experimental ProA DS - San Francisco</h1>
+    <img src="{{ url_for('static', filename='img/logoproa.png') }}" alt="Escuela ProA" style="display: block; margin: 0 auto; width: 200px; height: auto;">
+
+
+    <table id="telemetryTable">
+        <thead>
+            <tr>
+                <th>Identificador</th>
+                <th>Tipo</th>
+                <th>Fecha y Hora</th>
+                <th>Frecuencia (MHz)</th>
+                <th>Latitud</th>
+                <th>Longitud</th>
+                <th>Altitud (m)</th>
+                <th>Temperatura (°C)</th>
+                <th>Humedad (%)</th>
+                <th>Elevación</th>
+                <th>Rango (km)</th>
+                <th>SNR (dB)</th>
+                <th>Placa Base</th>
+                <th>Temporizador de Ráfaga</th>
+                <th>Voltaje Batería</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td colspan="18" style="text-align: center;">Esperando datos...</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // Establece la conexión con el servidor socket.io
+        const socket = io();
+
+        // Escucha el evento 'telemetry_event'
+        socket.on('telemetry_event', (data) => {
+            console.log('Datos recibidos:', data);
+            updateTelemetryTable(data);
+        });
+
+        function updateTelemetryTable(telemetryData) {
+            const tableBody = document.querySelector('#telemetryTable tbody');
+            
+            // Elimina la fila de "Esperando datos..." si existe
+            if (tableBody.querySelector('tr[colspan="18"]')) {
+                tableBody.innerHTML = '';
+            }
+
+            // Crea una nueva fila para los datos
+            const newRow = document.createElement('tr');
+            
+            // Asegúrate de que los datos existan antes de agregarlos
+            const id = telemetryData.id || 'N/A';
+            const type = telemetryData.type || 'N/A';
+            const datetime = telemetryData.datetime || 'N/A';
+            const freq = (telemetryData.freq !== undefined) ? telemetryData.freq.toFixed(2) : 'N/A';
+            const lat = (telemetryData.lat !== undefined) ? telemetryData.lat.toFixed(4) : 'N/A';
+            const lon = (telemetryData.lon !== undefined) ? telemetryData.lon.toFixed(4) : 'N/A';
+            const alt = (telemetryData.alt !== undefined) ? telemetryData.alt.toFixed(2) : 'N/A';
+            const temp = (telemetryData.temp !== undefined) ? telemetryData.temp.toFixed(2) : 'N/A';
+            const humidity = (telemetryData.humidity !== undefined) ? telemetryData.humidity.toFixed(2) : 'N/A';
+            const elevation = (telemetryData.elevation !== undefined) ? telemetryData.elevation.toFixed(2) : 'N/A';
+            const range = (telemetryData.range !== undefined) ? telemetryData.range.toFixed(2) : 'N/A';
+            const snr = (telemetryData.snr !== undefined) ? telemetryData.snr.toFixed(2) : 'N/A';
+            const rs41_mainboard = telemetryData.rs41_mainboard || 'N/A';
+            const bt = telemetryData.bt || 'N/A';
+            const batt = (telemetryData.batt !== undefined) ? telemetryData.batt.toFixed(2) : 'N/A';
+
+            newRow.innerHTML = `
+                <td>${id}</td>
+                <td>${type}</td>
+                <td>${datetime}</td>
+                <td>${freq}</td>
+                <td>${lat}</td>
+                <td>${lon}</td>
+                <td>${alt}</td>
+                <td>${temp}</td>
+                <td>${humidity}</td>
+                <td>${elevation}</td>
+                <td>${range}</td>
+                <td>${snr}</td>
+                <td>${rs41_mainboard}</td>
+                <td>${bt}</td>
+                <td>${batt}</td>
+            `;
+            
+            tableBody.appendChild(newRow);
+        }
+    </script>
+
+</body>
+</html>
